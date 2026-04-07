@@ -31,6 +31,7 @@ class Category(BaseModel):
     title = models.CharField(max_length=256, verbose_name='Заголовок')
     description = models.TextField(verbose_name='Описание')
     slug = models.SlugField(verbose_name='Идентификатор',
+                            unique=True,
                             help_text='Идентификатор страницы для URL; '
                                       'разрешены символы латиницы, цифры, '
                                       'дефис и подчёркивание.')
