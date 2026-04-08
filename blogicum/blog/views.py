@@ -1,40 +1,38 @@
-from django.shortcuts import render
-from blog.models import Post
-from blog.models import Category
-from django.utils.timezone import now
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import render, get_object_or_404
+from django.http import Http404
+
+from blog.models import Post, Category
+
+POSTS_PER_PAGE = 5
 
 
 def index(request):
-    template = 'blog/index.html'
-    post_list = Post.objects.select_related(
-        'author', 'category', 'location',
-    ).filter(
-        is_published=True,
-        pub_date__lt=now(),
-        category__is_published=True,
-    )[:5]
+    post_list = Post.objects.all().with_related_data()\
+        .published()\
+        .not_future()\
+        .with_published_category()\
+        .recent(POSTS_PER_PAGE)
     context = {
         'post_list': post_list, }
-    return render(request, template, context)
+    return render(request, 'blog/index.html', context)
 
 
 def post_detail(request, pk):
-    template = 'blog/detail.html'
-    post = get_object_or_404(Post, pk=pk,
-                             category__is_published=True,
-                             is_published=True,
-                             pub_date__lt=now(),)
+    post = get_object_or_404(Post.objects.all().published()
+                             .with_published_category()
+                             .not_future(),
+                             pk=pk)
     context = {'post': post}
-    return render(request, template, context)
+    return render(request, 'blog/detail.html', context)
 
 
 def category_posts(request, category_slug):
-    template = 'blog/category.html'
     category = get_object_or_404(Category, slug=category_slug,
                                  is_published=True)
-    post_list = get_list_or_404(Post, category=category,
-                                is_published=True,
-                                pub_date__lt=now())
+    post_list = Post.objects.filter(category=category).all()\
+        .published()\
+        .not_future()
+    if not post_list.exists():
+        raise Http404("Постов в данной категории не найдено")
     context = {'post_list': post_list, 'category': category}
-    return render(request, template, context)
+    return render(request, 'blog/category.html', context)

@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+from .querysets import PostManager
+
 User = get_user_model()
 
 
@@ -54,13 +56,19 @@ class Post(BaseModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                verbose_name='Автор публикации')
     location = models.ForeignKey(Location, on_delete=models.SET_NULL,
-                                 null=True, verbose_name='Местоположение')
+                                 blank=True,
+                                 null=True,
+                                 verbose_name='Местоположение')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL,
-                                 null=True, verbose_name='Категория')
+                                 null=True,
+                                 verbose_name='Категория')
+    objects = PostManager()
 
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
+        default_related_name = 'posts'
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.title
