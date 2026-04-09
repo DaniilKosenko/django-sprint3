@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
-from .querysets import PostManager
+from .querysets import PostQuerySet
 
 User = get_user_model()
 
@@ -62,7 +62,7 @@ class Post(BaseModel):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL,
                                  null=True,
                                  verbose_name='Категория')
-    objects = PostManager()
+    objects = PostQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'публикация'

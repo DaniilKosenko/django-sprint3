@@ -1,9 +1,9 @@
-from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import now
 
 
 class PostQuerySet(QuerySet):
+
     def published(self):
         return self.filter(is_published=True)
 
@@ -19,7 +19,9 @@ class PostQuerySet(QuerySet):
     def recent(self, count):
         return self[:count]
 
-
-class PostManager(models.Manager):
-    def get_queryset(self):
-        return PostQuerySet(self.model, using=self._db)
+    def valid_for_display(self):
+        return (
+            self.filter(is_published=True)
+            .filter(category__is_published=True)
+            .filter(pub_date__lt=now())
+        )
